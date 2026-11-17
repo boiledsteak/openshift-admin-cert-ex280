@@ -38,6 +38,12 @@ or
 
 ---
 
+view current branch
+
+`git branch`
+
+---
+
 Kustomize!
 
 ```
@@ -119,4 +125,62 @@ then generate a configMap in the database and exoplanets folder
 
 ---
 
-Kustomize patches!
+ocp templates
+
+a very simple and lightweight way to add variables to k8 yamls. but far less featured than helm charts
+
+ie.
+
+```yaml
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: nginx-template
+  annotations:
+    description: Simple Nginx application
+
+parameters:
+  - name: APP_NAME
+    description: Application name
+    value: nginx
+
+  - name: REPLICAS
+    description: Number of replicas
+    value: "2"
+
+objects:
+  # Deployment
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ${APP_NAME}
+    spec:
+      replicas: ${{REPLICAS}}
+      selector:
+        matchLabels:
+          app: ${APP_NAME}
+      template:
+        metadata:
+          labels:
+            app: ${APP_NAME}
+        spec:
+          containers:
+            - name: nginx
+              image: nginx:latest
+              ports:
+                - containerPort: 80
+
+  # Service
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APP_NAME}
+    spec:
+      selector:
+        app: ${APP_NAME}
+      ports:
+        - port: 80
+          targetPort: 80
+```
+
+but this shit can't even just `oc apply -f`. Need to run `oc process -f nginx-template.yaml` then it generates the yamls INDIVIDUALLY. Need to `oc apply` them afterwards
