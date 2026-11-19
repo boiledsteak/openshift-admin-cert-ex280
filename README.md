@@ -16,6 +16,12 @@ add rolebinding to user
 
 ---
 
+add clusterRoleBinding to user
+
+`oc adm policy add-cluster-role-to-user cluster-admin fm_tma`
+
+---
+
 show console link
 
 `oc whoami --show-console`
@@ -184,3 +190,75 @@ objects:
 ```
 
 but this shit can't even just `oc apply -f`. Need to run `oc process -f nginx-template.yaml` then it generates the yamls INDIVIDUALLY. Need to `oc apply` them afterwards
+
+---
+
+HTPasswd
+
+a way to auth with openshift using a file that contains username + hashed pw
+
+htpasswd originated from the Apache HTTP Server ecosystem.
+
+Traditionally, it was used to:
+- Create username/password files.
+- Store hashed passwords.
+- Authenticate users accessing password-protected web resources using HTTP Basic Authentication.
+OpenShift simply reuses the same HTPasswd file format
+
+the htpasswd file can hold several users
+
+1. run htpasswd command to generate the file
+
+```shell
+htpasswd ./location/htpasswd username
+```
+
+2. go to GUI, cluster settings, search for OAuth
+
+---
+
+openshift identity
+
+1 user can auth with several OAuth methods. Hence 1 user object can have many identity object that links to different OAuth types
+
+this is a keycloak identity
+
+```yaml
+
+apiVersion: user.openshift.io/v1
+kind: Identity
+metadata:
+  name: keycloak:john
+providerName: keycloak
+providerUserName: john
+user:
+  name: john
+  uid: 12345678-1234-1234-1234-123456789abc
+extra:
+  email: john@example.com
+  name: John Doe
+
+```
+
+this is htpasswd identity
+
+```yaml
+apiVersion: user.openshift.io/v1
+kind: Identity
+metadata:
+  name: htpasswd_provider:john
+providerName: htpasswd_provider
+providerUserName: john
+user:
+  name: john
+  uid: 12345678-1234-1234-1234-123456789abc
+```
+
+---
+
+Deleting user
+
+should delete user object, identity object, and from identity provider side. If it's htpasswd OAuth then its the htpasswd file itself. If it's keycloack OAuth then its on keycloak side
+
+---
+
