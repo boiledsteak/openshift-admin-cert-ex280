@@ -262,3 +262,58 @@ should delete user object, identity object, and from identity provider side. If 
 
 ---
 
+Creating self HTTPs certs!
+
+very hard to remember. Just remember `openssl req` then man or --help from there
+
+---
+
+OCP uses OVN-kubernetes as the CNI
+
+there's `networkPolicy` (namespace scoped) and `adminNetworkPolicy` (cluster scoped)
+
+`networkPolicy` rules dont have precedence
+
+start with deny all then create explicit allow. No explicit deny for `networkPolicy` BUT `adminNetworkPolicy` can
+
+`NetworkPolicy` = additive allow rules, no explicit deny.
+
+`AdminNetworkPolicy` = explicit Allow/Deny/Pass with priority.
+
+`AdminNetworkPolicy` priorty 10 is highest. lower number is higher priority. Rules within the same `AdminNetworkPolicy` are evaluated in order. Meaning to say rules on top have higher precedence
+
+```yaml
+apiVersion: policy.networking.k8s.io/v1
+kind: AdminNetworkPolicy
+metadata:
+  name: test1-ingress-policy
+spec:
+  priority: 10
+
+  subject:
+    namespaces:
+      matchLabels:
+        kubernetes.io/metadata.name: test1
+
+  ingress:
+    # Rule 1: Deny frontend
+    - name: deny-frontend
+      action: Deny
+      from:
+        - namespaces:
+            matchLabels:
+              kubernetes.io/metadata.name: frontend
+
+    # Rule 2: Allow frontend
+    - name: allow-frontend
+      action: Allow
+      from:
+        - namespaces:
+            matchLabels:
+              kubernetes.io/metadata.name: frontend
+```
+
+in the above, frontend will be denied
+
+
+When creating rules for `networkPolicy`, and want to allow communication between another namespace, need to specify the label of that namespace. can go and find. looks like `kubernetes.io/metadata.name: project2`
