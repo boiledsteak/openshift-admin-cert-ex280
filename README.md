@@ -317,3 +317,41 @@ in the above, frontend will be denied
 
 
 When creating rules for `networkPolicy`, and want to allow communication between another namespace, need to specify the label of that namespace. can go and find. looks like `kubernetes.io/metadata.name: project2`
+
+---
+
+service-ca
+
+this is the controller that manages internal services' HTTPs. It acts as CA for internal HTTPs traffic
+
+to re generate the default service cert used, add this annotation to a service
+
+this is the cert needed for SERVER
+
+```
+service.beta.openshift.io/serving-cert-secret-name=server-secret
+```
+
+below is the cert needed for CLIENT
+
+```
+service.beta.openshift.io/inject-cabundle=true
+```
+
+Adding the ^ created certs into a CLIENT - do volume mount to do default CA bundle location
+
+---
+
+by default all namespaces are within the same vlan
+
+`UserDefinedNetwork`
+
+this object creates a vlan scoped to one namespace
+
+`ClusterUserDefinedNetwork`
+
+this object creates a vlan that can span across several namespaces
+
+network isolation is one level higher than plain firewall via network policy
+
+---
